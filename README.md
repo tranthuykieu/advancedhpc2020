@@ -1,7 +1,7 @@
 MI 3.04a Advanced Programming for HPC
 =============================================
 
-This is a sample project for USTH ICT Master 2019.
+This is a sample project for USTH ICT Master 2020.
 
 Students are expected to:
 
