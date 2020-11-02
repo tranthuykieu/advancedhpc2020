@@ -1,0 +1,120 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{verbatimbox}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{titling}
+
+\usepackage{xcolor,listings}
+\usepackage{textcomp}
+\usepackage{color}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{HTML}{C42043}
+\definecolor{backcolour}{HTML}{F2F2F2}
+\definecolor{bookColor}{cmyk}{0,0,0,0.90}  
+\color{bookColor}
+
+\lstset{upquote=true}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codepurple},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+}
+\lstset{style=mystyle}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\LARGE#1\end{center}
+    \vskip0.5cm}%
+}
+
+\usepackage{hyperref}
+\usepackage{listings}
+
+\title{[MI3.04a] HPC}
+\subtitle{Report - Labwork 1 \\ OpenMP}
+\author{TRAN Thi Thuy Kieu}
+\date{November 2020}
+
+\renewcommand{\baselinestretch}{1.5} 
+
+\begin{document}
+% Report title
+\maketitle
+
+% Report structure
+\begin{itemize}
+    \item How you implement the conversion
+    
+    Add 
+    \begin{verbatim}
+        #pragma omp parallel for
+    \end{verbatim} 
+    before for loop in function Labwork::labwork1\_OpenMP()
+    
+    
+    \item What’s the speedup?
+    
+    \vspace{1mm}
+        \begin{verbatim}
+            ./labwork 1 ../data/dada.jpg
+            
+            USTH ICT Master 2018, Advanced Programming for HPC.
+            Warming up...
+            Starting labwork 1
+            labwork 1 CPU ellapsed 3960.9ms
+            labwork 1 CPU openmp ellapsed 361.8ms
+            labwork 1 ellapsed 484.5ms
+        \end{verbatim}
+    
+
+    \item Try experimenting with different OpenMP parameters
+        \begin{itemize}
+            \item Team size (Number of threads) \\
+            \vspace{1mm}
+            With ACTIVE\_THREADS = 64:
+            \begin{verbatim}
+                ./labwork 1 ./data/dada.jpg
+                USTH ICT Master 2018, Advanced Programming for HPC.
+                Warming up...
+                Starting labwork 1
+                labwork 1 CPU ellapsed 3976.7ms
+                labwork 1 CPU openmp ellapsed 379.1ms
+                labwork 1 ellapsed 547.9ms
+            \end{verbatim}
+            
+            With ACTIVE\_THREADS = 16:
+            \begin{verbatim}
+                ./labwork 1 ./data/dada.jpg
+                USTH ICT Master 2018, Advanced Programming for HPC.
+                Warming up...
+                Starting labwork 1
+                labwork 1 CPU ellapsed 3981.1ms
+                labwork 1 CPU openmp ellapsed 319.3ms
+                labwork 1 ellapsed 415.1ms
+            \end{verbatim}
+            
+            
+            \item static / dynamic
+            \item Plot a graph of team size vs speedup vs schedule
+        \end{itemize}
+    
+
+    
+\end{itemize}
+
+\end{document}
