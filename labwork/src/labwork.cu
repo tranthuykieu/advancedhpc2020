@@ -175,18 +175,50 @@ void Labwork::labwork2_GPU() {
 
 }
 
+// rgb => gray
+__global__ void grayscale(uchar3 *input, uchar3 *output) { 
+    int tid = threadIdx.x + blockIdx.x * blockDim.x; 
+    output[tid].x = (input[tid].x + input[tid].y +input[tid].z) / 3; 
+    output[tid].z = output[tid].y = output[tid].x;
+}
+
 void Labwork::labwork3_GPU() {
     // Calculate number of pixels
+    int pixelCount = inputImage->width * inputImage->height;
+    outputImage = static_cast<char *>(malloc(pixelCount * 3));
 
-    // Allocate CUDA memory    
+    // Allocate CUDA memory  
+    uchar3 *devInput;
+    uchar3 *devGray;
+    cudaMalloc(&devInput, pixelCount * sizeof(uchar3));
+    cudaMalloc(&devGray, pixelCount * sizeof(uchar3));  
 
     // Copy CUDA Memory from CPU to GPU
+    char *hostInput = (char *)malloc(pixelCount * 3);
+    #pragma omp parallel for
+    for (int j = 0; j < 100; j++) {     // let's do it 100 times, otherwise it's too fast!
+        for (int i = 0; i < pixelCount; i++) {
+            hostInput[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
+                                          (int) inputImage->buffer[i * 3 + 2]) / 3);
+            hostInput[i * 3 + 1] = hostInput[i * 3];
+            hostInput[i * 3 + 2] = hostInput[i * 3];
+        }
+    }
+    cudaMemcpy(devInput, hostInput, pixelCount * 3, cudaMemcpyHostToDevice);
 
     // Processing
+    int blockSize = 64;
+    int numBlock = pixelCount / blockSize;
+    grayscale<<<numBlock, blockSize>>>(devInput, devGray);
 
     // Copy CUDA Memory from GPU to CPU
+    // char *hostOutput = malloc(pixelCount * 3);
+
+    cudaMemcpy(outputImage, devGray, pixelCount * 3, cudaMemcpyDeviceToHost);
 
     // Cleaning
+    cudaFree(devGray);
+    cudaFree(devInput);
 }
 
 void Labwork::labwork4_GPU() {
