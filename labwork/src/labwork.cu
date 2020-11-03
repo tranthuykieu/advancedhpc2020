@@ -195,15 +195,13 @@ void Labwork::labwork3_GPU() {
 
     // Copy CUDA Memory from CPU to GPU
     char *hostInput = (char *)malloc(pixelCount * 3);
-    #pragma omp parallel for
-    for (int j = 0; j < 100; j++) {     // let's do it 100 times, otherwise it's too fast!
-        for (int i = 0; i < pixelCount; i++) {
-            hostInput[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
-                                          (int) inputImage->buffer[i * 3 + 2]) / 3);
-            hostInput[i * 3 + 1] = hostInput[i * 3];
-            hostInput[i * 3 + 2] = hostInput[i * 3];
-        }
+    for (int i = 0; i < pixelCount; i++) {
+        hostInput[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
+                                      (int) inputImage->buffer[i * 3 + 2]) / 3);
+        hostInput[i * 3 + 1] = hostInput[i * 3];
+        hostInput[i * 3 + 2] = hostInput[i * 3];
     }
+
     cudaMemcpy(devInput, hostInput, pixelCount * 3, cudaMemcpyHostToDevice);
 
     // Processing
