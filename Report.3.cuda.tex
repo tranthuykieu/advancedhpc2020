@@ -1,0 +1,112 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=2cm, right=2cm, top=0.5in, bottom=0.5in, includefoot, headheight=13.6pt]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{titling}
+
+\usepackage{minted}
+\usepackage{xcolor,listings}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{scrextend}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+\usepackage[caption = false]{subfig}
+
+\usepackage[square, comma, numbers, sort&compress]{natbib}
+\usepackage{graphicx, color}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\LARGE#1\end{center}
+    \vskip0.5cm}%
+}
+
+\usepackage{hyperref}
+\usepackage{listings}
+
+\title{[MI3.04a] HPC}
+\subtitle{Report - Labwork 3 \\ Hello, CUDA!}
+\author{TRAN Thi Thuy Kieu}
+\date{November 2020}
+
+\renewcommand{\baselinestretch}{1.5} 
+
+\begin{document}
+% Report title
+\maketitle
+
+
+% Report structure
+
+\begin{itemize}
+    \item Implement the labwork
+    \begin{verbatim}
+        
+        __global__ void grayscale(uchar3 *input, uchar3 *output) { 
+            int tid = threadIdx.x + blockIdx.x * blockDim.x; 
+            output[tid].x = (input[tid].x + input[tid].y +input[tid].z) / 3; 
+            output[tid].z = output[tid].y = output[tid].x;
+        }
+        
+        void Labwork::labwork3_GPU() {
+            // Calculate number of pixels
+            int pixelCount = inputImage->width * inputImage->height;
+            outputImage = static_cast<char *>(malloc(pixelCount * 3));
+        
+            // Allocate CUDA memory  
+            uchar3 *devInput;
+            uchar3 *devGray;
+            cudaMalloc(&devInput, pixelCount * sizeof(uchar3));
+            cudaMalloc(&devGray, pixelCount * sizeof(uchar3));  
+        
+            // Copy CUDA Memory from CPU to GPU
+            cudaMemcpy(devInput, inputImage->buffer, pixelCount * 3, cudaMemcpyHostToDevice);
+        
+            // Processing
+            int blockSize = 64;
+            int numBlock = pixelCount / blockSize;
+            grayscale<<<numBlock, blockSize>>>(devInput, devGray);
+        
+            // Copy CUDA Memory from GPU to CPU
+            cudaMemcpy(outputImage, devGray, pixelCount * 3, cudaMemcpyDeviceToHost);
+        
+            // Cleaning
+            cudaFree(devGray);
+            cudaFree(devInput);
+        }
+    \end{verbatim}
+    
+    
+    \item What’s the speedup?
+    \begin{verbatim}
+        ./labwork 3 ./data/dada.jpg
+        
+        USTH ICT Master 2018, Advanced Programming for HPC.
+        Warming up...
+        Starting labwork 3
+        labwork 3 ellapsed 136.1ms
+    \end{verbatim}
+    
+    \item Try experimenting with different block size values
+    
+    \item Plot a graph of block size vs speedup
+    \item Discuss the graph
+\end{itemize}
+
+
+
+\begin{verbatim}
+    
+\end{verbatim}
+
+\end{document}
+
+
+
