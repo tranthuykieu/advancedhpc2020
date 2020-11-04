@@ -194,15 +194,7 @@ void Labwork::labwork3_GPU() {
     cudaMalloc(&devGray, pixelCount * sizeof(uchar3));  
 
     // Copy CUDA Memory from CPU to GPU
-    char *hostInput = (char *)malloc(pixelCount * 3);
-    for (int i = 0; i < pixelCount; i++) {
-        hostInput[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
-                                      (int) inputImage->buffer[i * 3 + 2]) / 3);
-        hostInput[i * 3 + 1] = hostInput[i * 3];
-        hostInput[i * 3 + 2] = hostInput[i * 3];
-    }
-
-    cudaMemcpy(devInput, hostInput, pixelCount * 3, cudaMemcpyHostToDevice);
+    cudaMemcpy(devInput, inputImage->buffer, pixelCount * 3, cudaMemcpyHostToDevice);
 
     // Processing
     int blockSize = 64;
@@ -210,8 +202,6 @@ void Labwork::labwork3_GPU() {
     grayscale<<<numBlock, blockSize>>>(devInput, devGray);
 
     // Copy CUDA Memory from GPU to CPU
-    // char *hostOutput = malloc(pixelCount * 3);
-
     cudaMemcpy(outputImage, devGray, pixelCount * 3, cudaMemcpyDeviceToHost);
 
     // Cleaning
@@ -243,6 +233,7 @@ void Labwork::labwork9_GPU() {
 
 void Labwork::labwork10_GPU(){
 }
+
 
 
 
