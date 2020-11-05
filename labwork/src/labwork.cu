@@ -308,7 +308,101 @@ void Labwork::labwork5_CPU() {
 void Labwork::labwork5_GPU(bool shared) {
 }
 
+// for labwork 6a: gray image binarization
+__device__ int gray_bi(int grayValue, int threadhold) {
+    if (grayValue >= threadhold)
+        grayValue = 255;
+    else grayValue = 0;
+    return grayValue;
+}
+
+__global__ void grayscale_2d_binarization(uchar3 *input, uchar3 *output, int w, int h) {
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+
+    if (y >= h || x >= w) return;
+
+    int r = blockDim.x * gridDim.x;
+    x = r * y + x;
+
+    output[x].x = (input[x].x + input[x].y + input[x].z) / 3; 
+    output[x].x = gray_bi(output[x].x, 50);
+    output[x].z = output[x].y = output[x].x;
+}
+
+// for labwork 6b: brightness control
+__global__ void brightnessControl(uchar3 *input, uchar3 *output, int w, int h, int inc_value) {
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+
+    if (y >= h || x >= w) return;
+
+    int r = blockDim.x * gridDim.x;
+    x = r * y + x;
+
+    int outputX = input[x].x + inc_value;
+    if (outputX >= 255) 
+        output[x].x = 255;
+    else output[x].x = outputX;
+
+    int outputY = input[x].y + inc_value;
+    if (outputY >= 255) 
+        output[x].y = 255;
+    else output[x].y = outputY;
+
+    int outputZ = input[x].z + inc_value;
+    if (outputX >= 255) 
+        output[x].z = 255;
+    else output[x].z = outputZ;
+}
+
 void Labwork::labwork6_GPU() {
+    // Calculate number of pixels
+    int pixelCount = inputImage->width * inputImage->height;
+    outputImage = static_cast<char *>(malloc(pixelCount * 3));
+
+    // Allocate CUDA memory  
+    uchar3 *devInput;
+    uchar3 *devOutput;
+    cudaMalloc(&devInput, pixelCount * sizeof(uchar3));
+    cudaMalloc(&devOutput, pixelCount * sizeof(uchar3));  
+
+    // Copy CUDA Memory from CPU to GPU
+    cudaMemcpy(devInput, inputImage->buffer, pixelCount * 3, cudaMemcpyHostToDevice);
+
+    // Processing
+    dim3 blockSize = dim3(32, 32);
+
+    int gridX;
+    if (inputImage->width % blockSize.x == 0){
+        gridX = inputImage->width / blockSize.x;
+    }
+    else {
+        gridX = inputImage->width / blockSize.x + 1;
+    }
+
+    int gridY;
+    if (inputImage->height % blockSize.y == 0){
+        gridY = inputImage->height / blockSize.y;
+    }
+    else {
+        gridY = inputImage->height / blockSize.y + 1;  
+    } 
+    dim3 gridSize = dim3(gridX, gridY);
+
+    // 6a
+    // grayscale_2d_binarization<<<gridSize, blockSize>>>(devInput, devOutput, inputImage->width, inputImage->height);
+    // 6b
+    int inc_value = 30;
+    brightnessControl<<<gridSize, blockSize>>>(devInput, devOutput, inputImage->width, inputImage->height, inc_value);
+
+
+    // Copy CUDA Memory from GPU to CPU
+    cudaMemcpy(outputImage, devOutput, pixelCount * 3, cudaMemcpyDeviceToHost);
+
+    // Cleaning
+    cudaFree(devOutput);
+    cudaFree(devInput);
 }
 
 void Labwork::labwork7_GPU() {
