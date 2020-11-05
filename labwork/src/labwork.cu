@@ -182,12 +182,14 @@ __global__ void grayscale(uchar3 *input, uchar3 *output) {
     output[tid].z = output[tid].y = output[tid].x;
 }
 
-__global__ void grayscale_2d(uchar3 *input, uchar3 *output) {
+__global__ void grayscale_2d(uchar3 *input, uchar3 *output, int w, int h) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
-    int w = blockDim.x * gridDim.x;
-    x = w * y + x;
+    if (y >= h || x >= w) return;
+
+    int r = blockDim.x * gridDim.x;
+    x = r * y + x;
 
     output[x].x = (input[x].x + input[x].y + input[x].z) / 3; 
     output[x].z = output[x].y = output[x].x;
@@ -236,8 +238,25 @@ void Labwork::labwork4_GPU() {
 
     // Processing
     dim3 blockSize = dim3(32, 32);
-    dim3 gridSize = dim3(inputImage->width / blockSize.x, inputImage->height / blockSize.y);
-    grayscale_2d<<<gridSize, blockSize>>>(devInput, devGray);
+
+    int gridX;
+    if (inputImage->width % blockSize.x == 0){
+        gridX = inputImage->width / blockSize.x;
+    }
+    else {
+        gridX = inputImage->width / blockSize.x + 1;
+    }
+
+    int gridY;
+    if (inputImage->height % blockSize.y == 0){
+        gridY = inputImage->height / blockSize.y;
+    }
+    else {
+        gridY = inputImage->height / blockSize.y + 1;  
+    } 
+    dim3 gridSize = dim3(gridX, gridY);
+
+    grayscale_2d<<<gridSize, blockSize>>>(devInput, devGray, inputImage->width, inputImage->height);
 
     // Copy CUDA Memory from GPU to CPU
     cudaMemcpy(outputImage, devGray, pixelCount * 3, cudaMemcpyDeviceToHost);
@@ -245,7 +264,6 @@ void Labwork::labwork4_GPU() {
     // Cleaning
     cudaFree(devGray);
     cudaFree(devInput);
-
 }
 
 void Labwork::labwork5_CPU() {
@@ -273,26 +291,3 @@ void Labwork::labwork10_GPU(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-n
